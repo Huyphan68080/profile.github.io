@@ -1,0 +1,12 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_DISCORD_USER_ID: ${VITE_DISCORD_USER_ID:-}
+    image: futuristic-portfolio-2026:latest
+    container_name: futuristic-portfolio-2026
+    ports:
+      - "8080:80"
+    restart: unless-stopped
