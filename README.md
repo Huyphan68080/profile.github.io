@@ -189,3 +189,15 @@ Can boi tren GitHub:
 
 1. Vao `Settings` -> `Secrets and variables` -> `Actions`
 2. Tao repository variable: `VITE_DISCORD_USER_ID`
+
+## 9. Neu gap loi Pages API (Resource not accessible by integration)
+
+Workflow da doi sang deploy theo nhanh `gh-pages` (khong goi Pages REST API).
+
+Can set 1 lan tren GitHub:
+
+1. `Settings` -> `Pages`
+2. `Build and deployment` -> `Source: Deploy from a branch`
+3. Chon branch: `gh-pages`, folder: `/ (root)`
+
+Sau do moi lan push `main`, workflow se build va cap nhat `gh-pages` tu dong.
