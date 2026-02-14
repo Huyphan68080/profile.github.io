@@ -166,3 +166,26 @@ If `origin` already exists:
 git remote set-url origin https://github.com/Huyphan68080/profile.github.io.git
 git push -u origin main
 ```
+
+## 8. Auto deploy GitHub Pages (Actions)
+
+Workflow da duoc them tai:
+
+- `.github/workflows/deploy-pages.yml`
+
+M?i l?n push vào `main`, GitHub Actions s?:
+
+1. `npm ci`
+2. `npm run build`
+3. Upload `dist`
+4. Deploy lên GitHub Pages
+
+Can boi tren GitHub:
+
+1. Vao `Settings` -> `Pages`
+2. O `Build and deployment`, chon `Source: GitHub Actions`
+
+(Tuy chon) Neu muon set Discord ID qua CI:
+
+1. Vao `Settings` -> `Secrets and variables` -> `Actions`
+2. Tao repository variable: `VITE_DISCORD_USER_ID`
