@@ -36,7 +36,7 @@ npm run preview
 ```text
 .
 |-- public/
-|   `-- avatar.jpg
+|   `-- https://files.catbox.moe/5h9wzx.jpg
 |-- src/
 |   |-- components/
 |   |   |-- cards/
@@ -201,3 +201,4 @@ Can set 1 lan tren GitHub:
 3. Chon branch: `gh-pages`, folder: `/ (root)`
 
 Sau do moi lan push `main`, workflow se build va cap nhat `gh-pages` tu dong.
+

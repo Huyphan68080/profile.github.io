@@ -7,8 +7,12 @@ import { useTypewriter } from '../../hooks/useTypewriter';
 import Reveal from '../common/Reveal';
 import RippleButton from '../common/RippleButton';
 
+const AVATAR_PRIMARY_URL = 'https://files.catbox.moe/5h9wzx.jpg';
+const AVATAR_FALLBACK_URL =
+  'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22720%22 height=%22720%22 viewBox=%220 0 720 720%22%3E%3Cdefs%3E%3ClinearGradient id=%22bg%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%25%22 stop-color=%22%23090512%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%2323142f%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22720%22 height=%22720%22 fill=%22url(%23bg)%22/%3E%3Ccircle cx=%22360%22 cy=%22290%22 r=%22136%22 fill=%22%23f4f4f5%22 fill-opacity=%220.9%22/%3E%3Crect x=%22176%22 y=%22460%22 width=%22368%22 height=%22182%22 rx=%2291%22 fill=%22%23f4f4f5%22 fill-opacity=%220.9%22/%3E%3C/svg%3E';
+
 const HeroSection = () => {
-  const [avatarSrc, setAvatarSrc] = useState('/avatar.jpg');
+  const [avatarSrc, setAvatarSrc] = useState(AVATAR_PRIMARY_URL);
   const typedText = useTypewriter(profile.typewriterText, 40, 620);
   const runtimeStatus = useSiteStatus();
   const loopingName = useLoopTypewriter(profile.name.toUpperCase(), {
@@ -80,9 +84,9 @@ const HeroSection = () => {
               src={avatarSrc}
               alt="Personal Avatar"
               onError={(event) => {
-                if (avatarSrc === '/avatar.svg') return;
+                if (avatarSrc === AVATAR_FALLBACK_URL) return;
                 event.currentTarget.onerror = null;
-                setAvatarSrc('/avatar.svg');
+                setAvatarSrc(AVATAR_FALLBACK_URL);
               }}
               initial={{ opacity: 0, scale: 0.73, filter: 'blur(22px)' }}
               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
