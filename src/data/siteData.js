@@ -4,8 +4,8 @@ import { SiHtml5, SiGithub,SiCss3, SiTailwindcss, SiThreedotjs, SiTypescript, Si
 export const profile = {
   brand: 'Sun',
   name: 'Huy Phan',
-  role: 'Frontend Engineer & Motion Designer',
-  kicker: 'FUTURISTIC PERSONAL SITE',
+  role: 'Fullstack developer',
+  kicker: 'Profile',
   typewriterText: 'Building cinematic 3D experiences for the next generation of web products.',
   headline:
     'I craft high-performance interfaces that blend cyberpunk aesthetics, fluid motion, and practical product UX.',
@@ -76,7 +76,7 @@ export const contactMeta = {
 
 export const socialLinks = [
   { label: 'GitHub', href: 'https://github.com/huyphan68080' },
-  { label: 'Facebook', href: 'https://www.facebook/hp.media.vn' },
+  { label: 'Facebook', href: 'https://www.facebook.com/hphan.media.vn' },
   { label: 'Behance', href: 'https://www.behance.net/' },
 ];
 

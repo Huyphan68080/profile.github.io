@@ -84,7 +84,7 @@ const App = () => {
       <AnimatedBackground depth={depth} theme={theme} />
       <Navbar theme={theme} onToggleTheme={toggleTheme} />
 
-      <AnimatePresence>{isLoading ? <LoadingScreen progress={progress} /> : null}</AnimatePresence>
+      <AnimatePresence>{isLoading ? <LoadingScreen progress={progress} theme={theme} /> : null}</AnimatePresence>
 
       <main className="relative z-10 px-4 pb-16 pt-24 sm:px-6 lg:px-8">
         <HeroSection />

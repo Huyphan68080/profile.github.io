@@ -30,16 +30,28 @@ const ParallaxOrb = ({ orb, depth }) => {
 };
 
 const AnimatedBackground = ({ depth, theme }) => {
+  const isDark = theme === 'dark';
+
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden [contain:paint]">
-      <div className={`bg-red-void absolute inset-0 ${theme === 'dark' ? 'opacity-95' : 'opacity-92'}`} />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,106,61,0.28),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(255,43,85,0.34),transparent_52%)]" />
+      <div className={`absolute inset-0 ${isDark ? 'bg-red-void opacity-95' : 'bg-red-void-light opacity-100'}`} />
+      <div
+        className={`absolute inset-0 ${
+          isDark
+            ? 'bg-[radial-gradient(circle_at_top_right,rgba(255,106,61,0.28),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(255,43,85,0.34),transparent_52%)]'
+            : 'bg-[radial-gradient(circle_at_top_right,rgba(255,128,110,0.24),transparent_46%),radial-gradient(circle_at_bottom_left,rgba(255,64,104,0.2),transparent_54%)]'
+        }`}
+      />
 
       {parallaxOrbs.map((orb) => (
         <ParallaxOrb key={orb.id} orb={orb} depth={depth} />
       ))}
 
-      <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(251,113,133,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(251,113,133,0.16)_1px,transparent_1px)] [background-size:70px_70px] [mask-image:radial-gradient(circle_at_center,black_42%,transparent_86%)]" />
+      <div
+        className={`absolute inset-0 [background-image:linear-gradient(rgba(251,113,133,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(251,113,133,0.16)_1px,transparent_1px)] [background-size:70px_70px] [mask-image:radial-gradient(circle_at_center,black_42%,transparent_86%)] ${
+          isDark ? 'opacity-25' : 'opacity-35'
+        }`}
+      />
       <ParticleField />
     </div>
   );

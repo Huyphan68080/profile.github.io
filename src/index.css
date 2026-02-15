@@ -5,10 +5,10 @@
 @tailwind utilities;
 
 :root {
-  --bg-base: #140205;
-  --text-main: #ffe6e7;
-  --glass-bg: rgba(34, 6, 10, 0.58);
-  --glass-border: rgba(255, 85, 109, 0.32);
+  --bg-base: #fff4f5;
+  --text-main: #25080f;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 94, 122, 0.28);
 }
 
 :root.dark {
@@ -61,6 +61,12 @@ body {
 
 .bg-red-void {
   background: linear-gradient(132deg, #070102 6%, #180207 30%, #3f0814 56%, #230306 76%, #070102 100%);
+  background-size: 260% 260%;
+  animation: gradient-shift 14s ease-in-out infinite;
+}
+
+.bg-red-void-light {
+  background: linear-gradient(132deg, #fff5f6 6%, #ffdfe4 32%, #ffcbd4 54%, #ffe3e8 76%, #fff5f6 100%);
   background-size: 260% 260%;
   animation: gradient-shift 14s ease-in-out infinite;
 }
