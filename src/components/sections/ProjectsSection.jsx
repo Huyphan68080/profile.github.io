@@ -18,7 +18,7 @@ const ProjectsSection = () => {
             key={project.title}
             initial={{ opacity: 0, x: index % 2 === 0 ? -80 : 80 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.28 }}
+            viewport={{ once: false, amount: 0.28 }}
             transition={{ duration: 0.72, delay: index * 0.1 }}
           >
             <ProjectCard project={project} index={index} />

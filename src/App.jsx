@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import AboutSection from './components/sections/AboutSection';
 import ContactSection from './components/sections/ContactSection';
@@ -15,6 +15,11 @@ const App = () => {
   const { theme, toggleTheme } = useTheme();
   const depth = useMouseDepth();
   const { scrollYProgress } = useScroll();
+  const smoothScrollProgress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.45,
+  });
   const [isMobileView, setIsMobileView] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(max-width: 768px)').matches;
@@ -24,10 +29,10 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const parallaxFactor = isMobileView ? 0.36 : 1;
 
-  const aboutY = useTransform(scrollYProgress, [0, 1], [0, -70 * parallaxFactor]);
-  const skillsY = useTransform(scrollYProgress, [0, 1], [0, 50 * parallaxFactor]);
-  const projectsY = useTransform(scrollYProgress, [0, 1], [0, -36 * parallaxFactor]);
-  const contactY = useTransform(scrollYProgress, [0, 1], [0, 28 * parallaxFactor]);
+  const aboutY = useTransform(smoothScrollProgress, [0, 1], [0, -84 * parallaxFactor]);
+  const skillsY = useTransform(smoothScrollProgress, [0, 1], [0, 62 * parallaxFactor]);
+  const projectsY = useTransform(smoothScrollProgress, [0, 1], [0, -48 * parallaxFactor]);
+  const contactY = useTransform(smoothScrollProgress, [0, 1], [0, 34 * parallaxFactor]);
 
   useEffect(() => {
     let timeoutId;

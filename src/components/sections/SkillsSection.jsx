@@ -19,7 +19,7 @@ const SkillsSection = () => {
               key={skill.name}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: false, amount: 0.3 }}
               transition={{ duration: 0.6, delay: index * 0.06 }}
               className="glass-panel rounded-2xl border border-slate-200/20 p-5"
             >
@@ -39,7 +39,7 @@ const SkillsSection = () => {
                 <motion.div
                   initial={{ width: 0 }}
                   whileInView={{ width: `${skill.level}%` }}
-                  viewport={{ once: true, amount: 0.55 }}
+                  viewport={{ once: false, amount: 0.55 }}
                   transition={{ duration: 1, ease: 'easeOut', delay: 0.1 + index * 0.07 }}
                   className="h-full rounded-full bg-gradient-to-r from-neonPurple via-neonPink to-neonBlue"
                 />

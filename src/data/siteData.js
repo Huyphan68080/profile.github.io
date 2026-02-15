@@ -1,8 +1,8 @@
-import { FaFigma, FaGitAlt, FaReact } from 'react-icons/fa';
-import { SiFramer, SiTailwindcss, SiThreedotjs, SiTypescript, SiVite } from 'react-icons/si';
+import { FaFigma, FaGitAlt } from 'react-icons/fa';
+import { SiHtml5, SiGithub,SiCss3, SiTailwindcss, SiThreedotjs, SiTypescript, SiVite, SiJavascript, SiReact, SiNodedotjs, SiMongodb } from 'react-icons/si';
 
 export const profile = {
-  brand: 'HP//2026',
+  brand: 'Sun',
   name: 'Huy Phan',
   role: 'Frontend Engineer & Motion Designer',
   kicker: 'FUTURISTIC PERSONAL SITE',
@@ -25,20 +25,20 @@ export const aboutParagraphs = [
 ];
 
 export const aboutStats = [
-  { label: 'Years Experience', value: '4+' },
-  { label: 'Completed Projects', value: '45+' },
-  { label: 'Avg Performance', value: '95/100' },
+  { label: 'Years Experience', value: '3+' },
+  { label: 'Completed Projects', value: '3' },
+  { label: 'Avg Performance', value: '85/100' },
 ];
 
 export const skills = [
-  { name: 'React Architecture', level: 93, icon: FaReact, color: 'text-rose-400' },
-  { name: 'Framer Motion', level: 91, icon: SiFramer, color: 'text-red-400' },
-  { name: 'TailwindCSS', level: 95, icon: SiTailwindcss, color: 'text-orange-400' },
-  { name: 'TypeScript', level: 86, icon: SiTypescript, color: 'text-amber-400' },
-  { name: 'Vite Tooling', level: 88, icon: SiVite, color: 'text-rose-500' },
-  { name: '3D Interface Thinking', level: 82, icon: SiThreedotjs, color: 'text-red-500' },
-  { name: 'UI Prototyping', level: 89, icon: FaFigma, color: 'text-pink-400' },
-  { name: 'Git Workflow', level: 90, icon: FaGitAlt, color: 'text-orange-500' },
+  { name: 'Github', level: 70, icon: SiGithub, color: 'text-rose-400' },
+  { name: 'Html5', level: 91, icon: SiHtml5, color: 'text-red-400' },
+  { name: 'Css', level: 85, icon: SiCss3, color: 'text-blue-500' },
+  { name: 'JavaScript', level: 60, icon: SiJavascript, color: 'text-amber-400' },
+  { name: 'TailwindCSS', level: 50, icon: SiTailwindcss, color: 'text-orange-400' },
+  { name: 'React', level: 30, icon: SiReact, color: 'text-red-500' },
+  { name: 'Nodejs', level: 80, icon:SiNodedotjs, color: 'text-pink-400' },
+  { name: 'MongoDB', level: 70, icon: SiMongodb, color: 'text-orange-500' },
 ];
 
 export const projects = [
@@ -69,14 +69,14 @@ export const projects = [
 ];
 
 export const contactMeta = {
-  email: 'hello@huyphant.dev',
+  email: 'Huyphan68080@gmail.com',
   location: 'Ho Chi Minh City, Vietnam',
   availability: 'Open for freelance and product collaborations',
 };
 
 export const socialLinks = [
-  { label: 'GitHub', href: 'https://github.com/' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/' },
+  { label: 'GitHub', href: 'https://github.com/huyphan68080' },
+  { label: 'Facebook', href: 'https://www.facebook/hp.media.vn' },
   { label: 'Behance', href: 'https://www.behance.net/' },
 ];
 
