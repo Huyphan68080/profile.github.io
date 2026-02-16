@@ -11,7 +11,7 @@ const AVATAR_PRIMARY_URL = 'https://files.catbox.moe/5h9wzx.jpg';
 const AVATAR_FALLBACK_URL =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22720%22 height=%22720%22 viewBox=%220 0 720 720%22%3E%3Cdefs%3E%3ClinearGradient id=%22bg%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%25%22 stop-color=%22%23090512%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%2323142f%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22720%22 height=%22720%22 fill=%22url(%23bg)%22/%3E%3Ccircle cx=%22360%22 cy=%22290%22 r=%22136%22 fill=%22%23f4f4f5%22 fill-opacity=%220.9%22/%3E%3Crect x=%22176%22 y=%22460%22 width=%22368%22 height=%22182%22 rx=%2291%22 fill=%22%23f4f4f5%22 fill-opacity=%220.9%22/%3E%3C/svg%3E';
 
-const HeroSection = () => {
+const HeroSection = ({ isMobileView = false, reduceMotion = false }) => {
   const [avatarSrc, setAvatarSrc] = useState(AVATAR_PRIMARY_URL);
   const typedText = useTypewriter(profile.typewriterText, 40, 620);
   const runtimeStatus = useSiteStatus();
@@ -24,14 +24,14 @@ const HeroSection = () => {
 
   const { scrollYProgress } = useScroll();
 
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.87]);
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, -95]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, isMobileView ? 0.92 : 0.87]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [1, isMobileView ? 0.45 : 0.2]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, isMobileView ? -68 : -95]);
 
   return (
     <motion.section
       id="hero"
-      style={{ scale, opacity, y }}
+      style={reduceMotion ? undefined : { scale, opacity, y }}
       className="relative flex min-h-[94vh] items-center"
     >
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 pt-16 lg:grid-cols-[1.05fr_0.95fr]">
@@ -107,16 +107,24 @@ const HeroSection = () => {
                 <span className={`inline-block h-2.5 w-2.5 animate-pulse rounded-full ${runtimeStatus.dotClass}`} />
                 {runtimeStatus.label}
               </p>
-              {runtimeStatus.appLabel ? (
-                <p className="mt-2 text-xs text-zinc-700 dark:text-zinc-200">{runtimeStatus.appLabel}</p>
+
+              {runtimeStatus.activityLines?.length > 0 ? (
+                <div className="mt-2 space-y-1">
+                  {runtimeStatus.activityLines.map((item) => (
+                    <p
+                      key={item.id}
+                      className={`text-xs ${item.isMedia ? 'text-orange-600 dark:text-orange-300' : 'text-zinc-700 dark:text-zinc-200'}`}
+                    >
+                      {item.label}
+                      {item.duration ? (
+                        <span className="ml-1 text-emerald-600 dark:text-emerald-300">({item.duration})</span>
+                      ) : null}
+                    </p>
+                  ))}
+                </div>
               ) : null}
-              {runtimeStatus.mediaLabel ? (
-                <p className="mt-1 text-xs text-orange-600 dark:text-orange-300">{runtimeStatus.mediaLabel}</p>
-              ) : null}
-              {runtimeStatus.durationLabel ? (
-                <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-300">{runtimeStatus.durationLabel}</p>
-              ) : null}
-              {runtimeStatus.customLabel && !runtimeStatus.appLabel && !runtimeStatus.mediaLabel ? (
+
+              {runtimeStatus.customLabel && !runtimeStatus.activityLines?.length ? (
                 <p className="mt-1 text-xs italic text-zinc-600 dark:text-zinc-300">{runtimeStatus.customLabel}</p>
               ) : null}
             </motion.div>

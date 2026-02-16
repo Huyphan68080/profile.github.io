@@ -6,14 +6,14 @@ import SectionTitle from '../common/SectionTitle';
 
 const ContactSection = () => {
   return (
-    <section id="contact" className="mx-auto max-w-6xl py-24">
+    <section id="contact" className="mx-auto max-w-6xl py-16 sm:py-20 lg:py-24">
       <SectionTitle
         kicker="Contact"
         title="Let's build your next immersive product."
-        subtitle="Share your idea, timeline, and goals. I can help from design direction to production-ready React implementation."
+        subtitle="Share your idea, timeline, and goals. I can help from design direction to production-ready implementation."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="grid gap-5 sm:gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <Reveal className="space-y-4">
           <article className="glass-panel rounded-2xl border border-slate-200/20 p-5">
             <div className="flex items-center gap-3 text-zinc-800 dark:text-zinc-100">

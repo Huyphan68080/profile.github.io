@@ -32,6 +32,10 @@ const getPreviewSources = (project) => {
 
 const ProjectCard = ({ project, index }) => {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [isTouchLayout, setIsTouchLayout] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+  });
   const hrefValue = typeof project.href === 'string' ? project.href.trim() : '';
   const hasLiveDemo = hrefValue !== '#' && isValidHttpUrl(hrefValue);
   const previewSources = useMemo(() => getPreviewSources(project), [project.href, project.image]);
@@ -41,7 +45,8 @@ const ProjectCard = ({ project, index }) => {
   const [frameFailed, setFrameFailed] = useState(false);
   const imageSrc = previewSources[previewIndex] || '';
   const hasManualImage = Boolean(typeof project.image === 'string' && isValidHttpUrl(project.image.trim()));
-  const shouldUseLiveFrame = hasLiveDemo && !hasManualImage;
+  const shouldUseLiveFrame = hasLiveDemo && !hasManualImage && !isTouchLayout;
+  const tiltEnabled = !isTouchLayout;
 
   useEffect(() => {
     setPreviewIndex(0);
@@ -49,6 +54,22 @@ const ProjectCard = ({ project, index }) => {
     setFrameReady(false);
     setFrameFailed(false);
   }, [project.href, project.image, project.title]);
+
+  useEffect(() => {
+    const interactionQuery = window.matchMedia('(max-width: 768px), (pointer: coarse)');
+    const syncLayoutMode = (event) => {
+      setIsTouchLayout(event.matches);
+    };
+    setIsTouchLayout(interactionQuery.matches);
+
+    if (interactionQuery.addEventListener) {
+      interactionQuery.addEventListener('change', syncLayoutMode);
+      return () => interactionQuery.removeEventListener('change', syncLayoutMode);
+    }
+
+    interactionQuery.addListener(syncLayoutMode);
+    return () => interactionQuery.removeListener(syncLayoutMode);
+  }, []);
 
   useEffect(() => {
     if (!shouldUseLiveFrame || frameReady) return undefined;
@@ -63,6 +84,8 @@ const ProjectCard = ({ project, index }) => {
   }, [shouldUseLiveFrame, project.href, frameReady]);
 
   const handleMouseMove = (event) => {
+    if (!tiltEnabled) return;
+
     const rect = event.currentTarget.getBoundingClientRect();
     const posX = event.clientX - rect.left;
     const posY = event.clientY - rect.top;
@@ -78,19 +101,19 @@ const ProjectCard = ({ project, index }) => {
   };
 
   return (
-    <div className="[perspective:1100px]">
+    <div className={tiltEnabled ? '[perspective:1100px]' : ''}>
       <motion.article
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{ rotateX: tilt.x, rotateY: tilt.y, transformStyle: 'preserve-3d' }}
+        style={tiltEnabled ? { rotateX: tilt.x, rotateY: tilt.y, transformStyle: 'preserve-3d' } : undefined}
         transition={{ type: 'spring', stiffness: 180, damping: 17, mass: 0.55 }}
-        className="glass-panel group relative h-full rounded-3xl border border-slate-200/20 p-6 sm:p-7"
+        className="glass-panel group relative h-full rounded-3xl border border-slate-200/20 p-5 sm:p-7"
       >
         <div
           className={`absolute inset-0 -z-10 rounded-3xl bg-gradient-to-br ${project.accentClass} opacity-45 blur-xl transition group-hover:opacity-65`}
         />
 
-        <div style={{ transform: 'translateZ(34px)' }}>
+        <div style={tiltEnabled ? { transform: 'translateZ(34px)' } : undefined}>
           {shouldUseLiveFrame && !frameFailed ? (
             <a
               href={hasLiveDemo ? project.href : undefined}
@@ -137,7 +160,7 @@ const ProjectCard = ({ project, index }) => {
                 src={imageSrc}
                 alt={`${project.title} preview`}
                 loading="lazy"
-                className="aspect-video w-full object-cover transition duration-500 group-hover/preview:scale-[1.03]"
+                className={`aspect-video w-full object-cover ${tiltEnabled ? 'transition duration-500 group-hover/preview:scale-[1.03]' : ''}`}
                 onError={() => {
                   if (previewIndex < previewSources.length - 1) {
                     setPreviewIndex((current) => current + 1);

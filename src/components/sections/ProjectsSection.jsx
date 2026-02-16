@@ -8,11 +8,10 @@ const ProjectsSection = () => {
   const enrichedProjects = useProjectTechTags(projects);
 
   return (
-    <section id="projects" className="mx-auto max-w-6xl py-24">
+    <section id="projects" className="mx-auto max-w-6xl py-16 sm:py-20 lg:py-24">
       <SectionTitle
         kicker="Projects"
         title="Selected interfaces with bold motion language."
-        subtitle="Cards use 3D hover tilt and viewport-triggered slide animations from alternating directions."
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

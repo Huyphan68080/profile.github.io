@@ -5,9 +5,9 @@ const SectionTitle = ({ kicker, title, subtitle }) => {
     <motion.div
       initial={{ opacity: 0, y: 22 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.35 }}
+      viewport={{ once: false, amount: 0.35 }}
       transition={{ duration: 0.7 }}
-      className="mb-10 max-w-3xl"
+      className="mb-8 max-w-3xl sm:mb-10"
     >
       <p className="cyber-title text-xs uppercase tracking-[0.3em] text-rose-500 dark:text-rose-300">{kicker}</p>
       <h2 className="mt-3 text-3xl font-bold leading-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl">

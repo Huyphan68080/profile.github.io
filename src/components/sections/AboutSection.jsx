@@ -4,14 +4,14 @@ import SectionTitle from '../common/SectionTitle';
 
 const AboutSection = () => {
   return (
-    <section id="about" className="mx-auto max-w-6xl py-24">
+    <section id="about" className="mx-auto max-w-6xl py-16 sm:py-20 lg:py-24">
       <SectionTitle
         kicker="About Me"
         title="I blend product clarity with futuristic visual language."
         subtitle="From interaction concept to polished release, I focus on smooth motion, strong hierarchy, and measurable UX quality."
       />
 
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
           {aboutParagraphs.map((paragraph, index) => (
             <Reveal key={paragraph} delay={0.14 + index * 0.1}>

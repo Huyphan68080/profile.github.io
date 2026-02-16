@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-const LoadingScreen = ({ progress, theme }) => {
+const LoadingScreen = ({ progress, theme, isMobile = false }) => {
   const isDark = theme === 'dark';
 
   return (

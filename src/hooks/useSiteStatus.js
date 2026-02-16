@@ -63,15 +63,6 @@ const formatDuration = (startedAt, nowMs) => {
   return `${seconds}s`;
 };
 
-const getAppLabel = (activity) => {
-  if (!activity?.name) return '';
-
-  if (activity.type === 0) return `Game/App: ${activity.name}`;
-  if (activity.type === 1) return `Streaming App: ${activity.name}`;
-  if (activity.type === 2 || activity.type === 3) return `Media App: ${activity.name}`;
-  return `Using App: ${activity.name}`;
-};
-
 const getActivitySearchText = (activity) => {
   const searchParts = [
     activity?.name,
@@ -127,35 +118,6 @@ const getSpotifyLabel = (spotify) => {
   return `Spotify: ${artist}`;
 };
 
-const getMediaMeta = (presenceData, activities) => {
-  const mediaActivity = activities.find((activity) => MEDIA_SOURCES.some((source) => getActivitySearchText(activity).includes(source)));
-
-  if (mediaActivity) {
-    const sourceName = getMediaSource(mediaActivity);
-    if (sourceName) {
-      return {
-        label: formatMediaLabel(sourceName, mediaActivity),
-        startedAt: getActivityStartTimestamp(mediaActivity),
-        activity: mediaActivity,
-      };
-    }
-  }
-
-  if (presenceData?.listening_to_spotify) {
-    return {
-      label: getSpotifyLabel(presenceData?.spotify),
-      startedAt: getSpotifyStartTimestamp(presenceData?.spotify),
-      activity: null,
-    };
-  }
-
-  return {
-    label: '',
-    startedAt: null,
-    activity: null,
-  };
-};
-
 const getCustomStatusLabel = (activities) => {
   const customActivity = activities.find((activity) => activity?.type === 4 && typeof activity.state === 'string');
   const customText = customActivity?.state?.trim();
@@ -163,22 +125,65 @@ const getCustomStatusLabel = (activities) => {
   return `Custom: ${customText}`;
 };
 
+const getGenericActivityLabel = (activity) => {
+  const appName = typeof activity?.name === 'string' ? activity.name.trim() : '';
+  const details = typeof activity?.details === 'string' ? activity.details.trim() : '';
+  const state = typeof activity?.state === 'string' ? activity.state.trim() : '';
+  const mainText = appName || details || state;
+
+  if (activity?.type === 0) return `Game: ${mainText || 'Active'}`;
+  if (activity?.type === 1) return `Streaming: ${mainText || 'Active'}`;
+  if (appName && details && details.toLowerCase() !== appName.toLowerCase()) {
+    return `App: ${appName} - ${details}`;
+  }
+  return `App: ${mainText || 'Active'}`;
+};
+
+const createActivityEntry = (activity) => {
+  if (!activity || typeof activity !== 'object') return null;
+
+  const mediaSource = getMediaSource(activity);
+  const label = mediaSource ? formatMediaLabel(mediaSource, activity) : getGenericActivityLabel(activity);
+  const durationStartedAt = getActivityStartTimestamp(activity);
+
+  if (!label) return null;
+  return {
+    id: `${activity.id || activity.name || 'activity'}-${durationStartedAt || 'na'}`,
+    label,
+    isMedia: Boolean(mediaSource),
+    durationStartedAt,
+  };
+};
+
 const extractPresenceMeta = (presenceData) => {
   const activities = Array.isArray(presenceData?.activities) ? presenceData.activities : [];
   const richActivities = activities.filter((activity) => activity?.type !== 4 && !isExpiredActivity(activity));
 
-  const appActivity = richActivities.find((activity) => !isMediaActivity(activity)) || null;
-  const mediaMeta = getMediaMeta(presenceData, richActivities);
-  const mediaLabel = mediaMeta.label;
-  const appDisplayActivity = appActivity || mediaMeta.activity;
-  const appLabel = appDisplayActivity ? getAppLabel(appDisplayActivity) : presenceData?.listening_to_spotify ? 'Media App: Spotify' : '';
-  const appStartedAt = appDisplayActivity ? getActivityStartTimestamp(appDisplayActivity) : null;
+  const activityEntries = [];
+  for (const activity of richActivities) {
+    const entry = createActivityEntry(activity);
+    if (entry) {
+      activityEntries.push(entry);
+    }
+  }
+
+  if (presenceData?.listening_to_spotify) {
+    const spotifyLabel = getSpotifyLabel(presenceData?.spotify);
+    const alreadyHasSpotify = activityEntries.some((entry) => entry.label.toLowerCase().startsWith('spotify:'));
+
+    if (spotifyLabel && !alreadyHasSpotify) {
+      activityEntries.push({
+        id: 'spotify-fallback',
+        label: spotifyLabel,
+        isMedia: true,
+        durationStartedAt: getSpotifyStartTimestamp(presenceData?.spotify),
+      });
+    }
+  }
 
   return {
-    appLabel,
-    mediaLabel,
+    activityEntries,
     customLabel: getCustomStatusLabel(activities),
-    durationStartedAt: appStartedAt || mediaMeta.startedAt,
   };
 };
 
@@ -212,10 +217,8 @@ export const useSiteStatus = () => {
   const [state, setState] = useState({
     availability: getBrowserStatus(),
     source: 'browser',
-    appLabel: '',
-    mediaLabel: '',
+    activityEntries: [],
     customLabel: '',
-    durationStartedAt: null,
   });
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -233,10 +236,8 @@ export const useSiteStatus = () => {
         setState({
           availability: getBrowserStatus(),
           source: 'browser',
-          appLabel: '',
-          mediaLabel: '',
+          activityEntries: [],
           customLabel: '',
-          durationStartedAt: null,
         });
 
       window.addEventListener('online', syncBrowserStatus);
@@ -264,23 +265,19 @@ export const useSiteStatus = () => {
       }
 
       const shouldShowActivities = discordStatus === 'online' || discordStatus === 'idle' || discordStatus === 'dnd';
-      const { appLabel, mediaLabel, customLabel, durationStartedAt } = shouldShowActivities
+      const { activityEntries, customLabel } = shouldShowActivities
         ? extractPresenceMeta(presenceData)
         : {
-            appLabel: '',
-            mediaLabel: '',
+            activityEntries: [],
             customLabel: '',
-            durationStartedAt: null,
           };
 
       if (!isMounted) return;
       setState({
         availability: discordStatus,
         source: 'discord',
-        appLabel,
-        mediaLabel,
+        activityEntries,
         customLabel,
-        durationStartedAt,
       });
     };
 
@@ -423,10 +420,8 @@ export const useSiteStatus = () => {
           setState({
             availability: 'not_linked',
             source: 'discord',
-            appLabel: '',
-            mediaLabel: '',
+            activityEntries: [],
             customLabel: '',
-            durationStartedAt: null,
           });
           stopPolling();
           stopSocket();
@@ -444,10 +439,8 @@ export const useSiteStatus = () => {
         setState({
           availability: window.navigator.onLine ? 'unavailable' : 'offline',
           source: 'discord',
-          appLabel: '',
-          mediaLabel: '',
+          activityEntries: [],
           customLabel: '',
-          durationStartedAt: null,
         });
       } finally {
         window.clearTimeout(timeoutId);
@@ -494,8 +487,13 @@ export const useSiteStatus = () => {
   }, []);
 
   return useMemo(() => {
-    const duration = formatDuration(state.durationStartedAt, nowMs);
-    const durationLabel = duration ? `Active: ${duration}` : '';
+    const activityLines = state.activityEntries.map((entry) => {
+      const duration = formatDuration(entry.durationStartedAt, nowMs);
+      return {
+        ...entry,
+        duration,
+      };
+    });
 
     if (state.source === 'browser') {
       const browserOnline = state.availability === 'online';
@@ -503,10 +501,8 @@ export const useSiteStatus = () => {
         label: browserOnline ? 'Owner Online' : 'Owner Offline',
         toneClass: browserOnline ? 'text-emerald-600 dark:text-emerald-300' : 'text-zinc-600 dark:text-zinc-300',
         dotClass: browserOnline ? 'bg-emerald-500 dark:bg-emerald-300' : 'bg-zinc-500 dark:bg-zinc-300',
-        appLabel: '',
-        mediaLabel: '',
+        activityLines: [],
         customLabel: '',
-        durationLabel: '',
       };
     }
 
@@ -515,10 +511,8 @@ export const useSiteStatus = () => {
         label: 'Owner Online (Discord)',
         toneClass: 'text-emerald-600 dark:text-emerald-300',
         dotClass: 'bg-emerald-500 dark:bg-emerald-300',
-        appLabel: state.appLabel,
-        mediaLabel: state.mediaLabel,
+        activityLines,
         customLabel: state.customLabel,
-        durationLabel,
       };
     }
 
@@ -527,10 +521,8 @@ export const useSiteStatus = () => {
         label: 'Owner Idle (Discord)',
         toneClass: 'text-amber-600 dark:text-amber-300',
         dotClass: 'bg-amber-500 dark:bg-amber-300',
-        appLabel: state.appLabel,
-        mediaLabel: state.mediaLabel,
+        activityLines,
         customLabel: state.customLabel,
-        durationLabel,
       };
     }
 
@@ -539,10 +531,8 @@ export const useSiteStatus = () => {
         label: 'Owner Do Not Disturb',
         toneClass: 'text-rose-600 dark:text-rose-300',
         dotClass: 'bg-rose-500 dark:bg-rose-300',
-        appLabel: state.appLabel,
-        mediaLabel: state.mediaLabel,
+        activityLines,
         customLabel: state.customLabel,
-        durationLabel,
       };
     }
 
@@ -551,10 +541,8 @@ export const useSiteStatus = () => {
         label: 'Owner Offline (Discord)',
         toneClass: 'text-zinc-600 dark:text-zinc-300',
         dotClass: 'bg-zinc-500 dark:bg-zinc-300',
-        appLabel: '',
-        mediaLabel: '',
+        activityLines: [],
         customLabel: '',
-        durationLabel: '',
       };
     }
 
@@ -563,10 +551,8 @@ export const useSiteStatus = () => {
         label: 'Lanyard Not Linked',
         toneClass: 'text-orange-600 dark:text-orange-300',
         dotClass: 'bg-orange-500 dark:bg-orange-300',
-        appLabel: '',
-        mediaLabel: '',
+        activityLines: [],
         customLabel: '',
-        durationLabel: '',
       };
     }
 
@@ -574,10 +560,8 @@ export const useSiteStatus = () => {
       label: 'Discord Unavailable',
       toneClass: 'text-orange-600 dark:text-orange-300',
       dotClass: 'bg-orange-500 dark:bg-orange-300',
-      appLabel: '',
-      mediaLabel: '',
+      activityLines: [],
       customLabel: '',
-      durationLabel: '',
     };
-  }, [state.availability, state.source, state.appLabel, state.mediaLabel, state.customLabel, state.durationStartedAt, nowMs]);
+  }, [state.availability, state.source, state.activityEntries, state.customLabel, nowMs]);
 };

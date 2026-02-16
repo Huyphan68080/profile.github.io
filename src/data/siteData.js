@@ -6,9 +6,7 @@ export const profile = {
   name: 'Huy Phan',
   role: 'Fullstack developer',
   kicker: 'Profile',
-  typewriterText: 'Building cinematic 3D experiences for the next generation of web products.',
-  headline:
-    'I craft high-performance interfaces that blend cyberpunk aesthetics, fluid motion, and practical product UX.',
+  typewriterText: 'Build a fully functional web model.',
 };
 
 export const navLinks = [
@@ -16,6 +14,7 @@ export const navLinks = [
   { label: 'About', href: '#about' },
   { label: 'Skills', href: '#skills' },
   { label: 'Projects', href: '#projects' },
+  { label: 'IP Check', href: '#ip-check' },
   { label: 'Contact', href: '#contact' },
 ];
 

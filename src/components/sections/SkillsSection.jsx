@@ -4,14 +4,14 @@ import SectionTitle from '../common/SectionTitle';
 
 const SkillsSection = () => {
   return (
-    <section id="skills" className="mx-auto max-w-6xl py-24">
+    <section id="skills" className="mx-auto max-w-6xl py-16 sm:py-20 lg:py-24">
       <SectionTitle
         kicker="Skills"
-        title="Production-ready frontend skill set."
+        title="Production-ready fullstack skill set."
         subtitle="Stack optimized for modern React products: performance, accessibility, animation quality, and component architecture."
       />
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
         {skills.map((skill, index) => {
           const Icon = skill.icon;
           return (

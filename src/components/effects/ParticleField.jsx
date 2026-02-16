@@ -3,11 +3,8 @@ import { useMemo } from 'react';
 const DESKTOP_PARTICLES = 34;
 const MOBILE_PARTICLES = 20;
 
-const ParticleField = () => {
-  const particleCount =
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
-      ? MOBILE_PARTICLES
-      : DESKTOP_PARTICLES;
+const ParticleField = ({ isMobile = false, reduceMotion = false }) => {
+  const particleCount = reduceMotion ? 0 : isMobile ? MOBILE_PARTICLES : DESKTOP_PARTICLES;
 
   const particles = useMemo(
     () =>
@@ -15,14 +12,16 @@ const ParticleField = () => {
         id: index,
         left: Math.random() * 100,
         top: Math.random() * 100,
-        size: Math.random() * 2.6 + 1.1,
+        size: Math.random() * (isMobile ? 2.1 : 2.6) + 1.1,
         delay: Math.random() * 8,
-        duration: Math.random() * 9 + 8,
-        xDrift: `${(Math.random() - 0.5) * 120}px`,
-        yDrift: `${Math.random() * 140 + 30}px`,
+        duration: Math.random() * (isMobile ? 7 : 9) + 8,
+        xDrift: `${(Math.random() - 0.5) * (isMobile ? 92 : 120)}px`,
+        yDrift: `${Math.random() * (isMobile ? 118 : 140) + 30}px`,
       })),
-    [particleCount],
+    [isMobile, particleCount],
   );
+
+  if (!particleCount) return null;
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
