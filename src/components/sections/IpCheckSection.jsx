@@ -39,7 +39,7 @@ const IpCheckSection = ({ visitorInsights }) => {
                 ? 'Loading visitor data...'
                 : viewSource === 'global'
                   ? 'Total page views (global counter).'
-                  : 'Local counter fallback (global service unavailable).'}
+                  : 'Local counter (this browser only).'}
             </p>
           </article>
 

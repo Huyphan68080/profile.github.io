@@ -194,27 +194,20 @@ const detectTagsForGitHubPages = async (href, signal) => {
     }
   }
 
-  const markdownPaths = blobPaths.filter((path) => path.toLowerCase().endsWith('.md')).slice(0, MAX_MARKDOWN_FILES_TO_SCAN);
+  const markdownPaths = blobPaths
+    .filter((path) => {
+      const lowered = path.toLowerCase();
+      if (lowered.endsWith('.md')) return true;
+      return /(\/|^)readme(\.[a-z0-9]+)?$/i.test(lowered);
+    })
+    .slice(0, MAX_MARKDOWN_FILES_TO_SCAN);
 
-  if (markdownPaths.length > 0) {
-    for (const markdownPath of markdownPaths) {
-      try {
-        const markdown = await fetchFileContent(owner, repo, branch, markdownPath, signal);
-        detectFromMarkdown(markdown, tags);
-      } catch {
-        // Keep already-detected tags.
-      }
-    }
-  } else {
-    // Try GitHub README endpoint as a convenience fallback.
+  for (const markdownPath of markdownPaths) {
     try {
-      const readmePayload = await fetchJson(
-        `${GITHUB_API_BASE}/repos/${owner}/${repo}/readme?ref=${encodeURIComponent(branch)}`,
-        signal,
-      );
-      detectFromMarkdown(decodeBase64(readmePayload?.content), tags);
+      const markdown = await fetchFileContent(owner, repo, branch, markdownPath, signal);
+      detectFromMarkdown(markdown, tags);
     } catch {
-      // README is optional.
+      // Keep already-detected tags.
     }
   }
 

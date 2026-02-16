@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { integrations } from '../data/siteData';
 
 const COUNTER_NAMESPACE = 'huyphan68080-profile';
 const COUNTER_KEY = 'portfolio-visits';
@@ -8,13 +9,18 @@ const VIEW_LOCAL_COUNTER_KEY = 'portfolio-local-view-count-v1';
 const VISITOR_LOGGED_SESSION_KEY = 'portfolio-visitor-logged-v1';
 const VISITOR_HISTORY_KEY = 'portfolio-visitor-history-v1';
 const VISITOR_GEO_CACHE_KEY = 'portfolio-visitor-geo-cache-v1';
+const VISITOR_PROFILE_CACHE_KEY = 'portfolio-visitor-profile-cache-v1';
+const VISITOR_PROVIDER_COOLDOWN_KEY = 'portfolio-visitor-provider-cooldown-v1';
+const VIEW_GLOBAL_COUNTER_COOLDOWN_KEY = 'portfolio-global-counter-cooldown-v1';
 
 const MAX_VISITOR_HISTORY = 12;
 const MAX_GEO_CACHE = 60;
 const GEO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+const VISITOR_PROFILE_CACHE_TTL_MS = 1000 * 60 * 20;
+const VIEW_COUNTER_COOLDOWN_MS = 1000 * 60 * 15;
 const UNKNOWN_TEXT = 'Unknown';
 
-const CURRENT_VISITOR_ENDPOINTS = ['https://ipapi.co/json/', 'https://ipwho.is/', 'https://ipinfo.io/json'];
+const CURRENT_VISITOR_ENDPOINTS = [{ id: 'ipinfo-current', url: 'https://ipinfo.io/json' }];
 
 const normalizeText = (value) => (typeof value === 'string' && value.trim() ? value.trim() : '');
 
@@ -44,6 +50,92 @@ const toSafeNumber = (value) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 0) return 0;
   return Math.floor(parsed);
+};
+
+const readStoredObject = (key) => {
+  if (typeof window === 'undefined') return {};
+  const raw = window.localStorage.getItem(key);
+  if (!raw) return {};
+  const parsed = safeJsonParse(raw, {});
+  return parsed && typeof parsed === 'object' ? parsed : {};
+};
+
+const writeStoredObject = (key, value) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(key, JSON.stringify(value));
+};
+
+const getProviderCooldownDuration = (statusCode) => {
+  if (statusCode === 429) return 1000 * 60 * 60;
+  if (statusCode === 403) return 1000 * 60 * 60 * 12;
+  return 1000 * 60 * 10;
+};
+
+const isProviderCoolingDown = (endpointId) => {
+  if (typeof window === 'undefined' || !endpointId) return false;
+  const cooldowns = readStoredObject(VISITOR_PROVIDER_COOLDOWN_KEY);
+  const until = toSafeNumber(cooldowns[endpointId]);
+  return until > Date.now();
+};
+
+const setProviderCooldown = (endpointId, statusCode) => {
+  if (typeof window === 'undefined' || !endpointId) return;
+  const cooldowns = readStoredObject(VISITOR_PROVIDER_COOLDOWN_KEY);
+  cooldowns[endpointId] = Date.now() + getProviderCooldownDuration(statusCode);
+  writeStoredObject(VISITOR_PROVIDER_COOLDOWN_KEY, cooldowns);
+};
+
+const clearExpiredProviderCooldowns = () => {
+  if (typeof window === 'undefined') return;
+  const cooldowns = readStoredObject(VISITOR_PROVIDER_COOLDOWN_KEY);
+  const now = Date.now();
+  const nextCooldowns = Object.fromEntries(
+    Object.entries(cooldowns).filter(([, until]) => toSafeNumber(until) > now),
+  );
+  writeStoredObject(VISITOR_PROVIDER_COOLDOWN_KEY, nextCooldowns);
+};
+
+const loadCachedVisitorProfile = () => {
+  if (typeof window === 'undefined') return null;
+  const raw = window.localStorage.getItem(VISITOR_PROFILE_CACHE_KEY);
+  if (!raw) return null;
+
+  const parsed = safeJsonParse(raw, null);
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const expiresAt = toSafeNumber(parsed.expiresAt);
+  if (!expiresAt || expiresAt <= Date.now()) {
+    window.localStorage.removeItem(VISITOR_PROFILE_CACHE_KEY);
+    return null;
+  }
+
+  const cachedData = parsed.data || parsed.visitor;
+  if (!cachedData || typeof cachedData !== 'object') return null;
+  return buildVisitorRecord(cachedData);
+};
+
+const saveCachedVisitorProfile = (visitor) => {
+  if (typeof window === 'undefined' || !visitor) return;
+  window.localStorage.setItem(
+    VISITOR_PROFILE_CACHE_KEY,
+    JSON.stringify({
+      expiresAt: Date.now() + VISITOR_PROFILE_CACHE_TTL_MS,
+      data: visitor,
+    }),
+  );
+};
+
+const getGlobalCounterCooldownUntil = () => {
+  if (typeof window === 'undefined') return 0;
+  return toSafeNumber(window.localStorage.getItem(VIEW_GLOBAL_COUNTER_COOLDOWN_KEY));
+};
+
+const setGlobalCounterCooldown = () => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(
+    VIEW_GLOBAL_COUNTER_COOLDOWN_KEY,
+    String(Date.now() + VIEW_COUNTER_COOLDOWN_MS),
+  );
 };
 
 const buildVisitorRecord = ({ ip, city, region, country, timezone, provider, visitedAt }) => {
@@ -165,6 +257,32 @@ const fetchJson = async (url, signal) => {
   return response.json();
 };
 
+const fetchProviderJson = async (endpoint, signal) => {
+  if (!endpoint?.url) {
+    throw new Error('Invalid endpoint');
+  }
+  if (isProviderCoolingDown(endpoint.id)) {
+    throw new Error('Provider cooldown');
+  }
+
+  try {
+    const response = await fetch(endpoint.url, { signal, cache: 'no-store' });
+    if (!response.ok) {
+      setProviderCooldown(endpoint.id, response.status);
+      throw new Error(`Request failed: ${response.status}`);
+    }
+    return response.json();
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw error;
+    }
+    if (!String(error?.message || '').includes('Request failed')) {
+      setProviderCooldown(endpoint.id, 0);
+    }
+    throw error;
+  }
+};
+
 const getStoredLocalViewCount = () => {
   if (typeof window === 'undefined') return 0;
   return toSafeNumber(window.localStorage.getItem(VIEW_LOCAL_COUNTER_KEY));
@@ -197,6 +315,18 @@ const fetchViewCount = async (signal) => {
     return { value: 0, source: 'local' };
   }
 
+  if (!integrations?.enableGlobalViewCounter) {
+    return { value: bumpLocalViewCount(), source: 'local' };
+  }
+
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return { value: bumpLocalViewCount(), source: 'local' };
+  }
+
+  if (getGlobalCounterCooldownUntil() > Date.now()) {
+    return { value: bumpLocalViewCount(), source: 'local' };
+  }
+
   const hasHitInSession = window.sessionStorage.getItem(VIEW_HIT_SESSION_KEY) === '1';
   const endpoint = hasHitInSession
     ? `https://api.countapi.xyz/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`
@@ -212,6 +342,7 @@ const fetchViewCount = async (signal) => {
       return { value: payload.value, source: 'global' };
     }
   } catch {
+    setGlobalCounterCooldown();
     // Use local fallback below.
   }
 
@@ -220,15 +351,18 @@ const fetchViewCount = async (signal) => {
 
 const buildIpLookupEndpoints = (ip) => {
   const encoded = encodeURIComponent(ip);
-  return [`https://ipapi.co/${encoded}/json/`, `https://ipwho.is/${encoded}`, `https://ipinfo.io/${encoded}/json`];
+  return [{ id: 'ipinfo-by-ip', url: `https://ipinfo.io/${encoded}/json` }];
 };
 
 const fetchVisitorFromEndpoints = async (endpoints, signal, visitedAt) => {
   let fallbackCandidate = null;
+  const activeEndpoints = (Array.isArray(endpoints) ? endpoints : []).filter(
+    (endpoint) => endpoint?.url && !isProviderCoolingDown(endpoint.id),
+  );
 
-  for (const endpoint of endpoints) {
+  for (const endpoint of activeEndpoints) {
     try {
-      const payload = await fetchJson(endpoint, signal);
+      const payload = await fetchProviderJson(endpoint, signal);
       const normalized = normalizeVisitor(payload, visitedAt);
       if (!normalized) continue;
 
@@ -346,12 +480,24 @@ const enrichVisitorHistory = async (history, currentVisitor, signal) => {
   return nextHistory;
 };
 
+const finalizeVisitorProfile = (visitor) => {
+  if (visitor) {
+    saveCachedVisitorProfile(visitor);
+  }
+  return visitor;
+};
+
 const fetchVisitorProfile = async (signal) => {
+  const cachedVisitor = loadCachedVisitorProfile();
+  if (cachedVisitor) {
+    return cachedVisitor;
+  }
+
   const visitedAt = new Date().toISOString();
 
   const fromCurrentEndpoints = await fetchVisitorFromEndpoints(CURRENT_VISITOR_ENDPOINTS, signal, visitedAt);
   if (fromCurrentEndpoints && hasKnownVisitorMeta(fromCurrentEndpoints)) {
-    return fromCurrentEndpoints;
+    return finalizeVisitorProfile(fromCurrentEndpoints);
   }
 
   const ip = pickFirstText(fromCurrentEndpoints?.ip);
@@ -361,8 +507,9 @@ const fetchVisitorProfile = async (signal) => {
       const rawIp = pickFirstText(ipPayload?.ip);
       if (rawIp) {
         const byIp = await fetchVisitorFromEndpoints(buildIpLookupEndpoints(rawIp), signal, visitedAt);
-        if (byIp) return byIp;
-        return buildVisitorRecord({
+        if (byIp) return finalizeVisitorProfile(byIp);
+        return finalizeVisitorProfile(
+          buildVisitorRecord({
           ip: rawIp,
           city: UNKNOWN_TEXT,
           region: UNKNOWN_TEXT,
@@ -370,25 +517,26 @@ const fetchVisitorProfile = async (signal) => {
           timezone: UNKNOWN_TEXT,
           provider: UNKNOWN_TEXT,
           visitedAt,
-        });
+          }),
+        );
       }
     } catch {
-      return fromCurrentEndpoints;
+      return finalizeVisitorProfile(fromCurrentEndpoints);
     }
 
-    return fromCurrentEndpoints;
+    return finalizeVisitorProfile(fromCurrentEndpoints);
   }
 
   const fromIpLookup = await fetchVisitorFromEndpoints(buildIpLookupEndpoints(ip), signal, visitedAt);
   if (!fromIpLookup) {
-    return fromCurrentEndpoints;
+    return finalizeVisitorProfile(fromCurrentEndpoints);
   }
 
   if (!fromCurrentEndpoints) {
-    return fromIpLookup;
+    return finalizeVisitorProfile(fromIpLookup);
   }
 
-  return mergeVisitors(fromCurrentEndpoints, fromIpLookup);
+  return finalizeVisitorProfile(mergeVisitors(fromCurrentEndpoints, fromIpLookup));
 };
 
 export const useVisitorInsights = () => {
@@ -405,6 +553,7 @@ export const useVisitorInsights = () => {
     let mounted = true;
     const controller = new AbortController();
     clearLegacyVisitorStorage();
+    clearExpiredProviderCooldowns();
 
     const loadInsights = async () => {
       const [viewCountResult, visitorResult] = await Promise.allSettled([

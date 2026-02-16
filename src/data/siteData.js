@@ -73,4 +73,5 @@ export const socialLinks = [
 
 export const integrations = {
   discordUserId: '1043123309983846482',
+  enableGlobalViewCounter: false,
 };
