@@ -26,7 +26,7 @@ export const aboutParagraphs = [
 
 export const aboutStats = [
   { label: 'Years Experience', value: '3+' },
-  { label: 'Completed Projects', value: '3' },
+  { label: 'Completed Projects', value: '2' },
   { label: 'Avg Performance', value: '85/100' },
 ];
 
@@ -43,28 +43,20 @@ export const skills = [
 
 export const projects = [
   {
-    title: 'Neon Commerce XR',
+    title: 'Note Web',
     description:
-      'A futuristic shopping experience with animated product layers, immersive transitions, and smooth checkout flow.',
-    tags: ['React', 'Framer Motion', 'Tailwind'],
-    href: '#',
+      'Web ghi chu va quan ly noi dung voi giao dien toi gian, de su dung.',
+    tags: ['React', 'JavaScript', 'HTML', 'CSS'],
+    href: 'https://huyphan68080.github.io/noteweb.github.io/',
     accentClass: 'from-neonPurple/45 via-neonPink/35 to-neonBlue/35',
   },
   {
-    title: 'Pulse Analytics Hub',
+    title: 'Quan Ly Hoc Sinh',
     description:
-      'Real-time dashboard concept focused on data storytelling, live charts, and high-readability glass panels.',
-    tags: ['Dashboard', 'Motion UX', 'Performance'],
-    href: '#',
+      'Ung dung quan ly hoc sinh voi cac chuc nang them, sua, xoa va tim kiem thong tin.',
+    tags: ['React', 'Vite', 'TailwindCSS', 'Node.js', 'Express', 'MongoDB', 'Render'],
+    href: 'https://huyphan68080.github.io/Quanlyhs.github.io/',
     accentClass: 'from-neonBlue/40 via-cyanSoft/25 to-neonPurple/35',
-  },
-  {
-    title: 'Orbit Portfolio CMS',
-    description:
-      'Content-driven portfolio system with modular sections, responsive layout presets, and visual editing logic.',
-    tags: ['Headless', 'Component System', 'SEO'],
-    href: '#',
-    accentClass: 'from-neonPink/35 via-neonPurple/35 to-cyanSoft/30',
   },
 ];
 
@@ -77,7 +69,7 @@ export const contactMeta = {
 export const socialLinks = [
   { label: 'GitHub', href: 'https://github.com/huyphan68080' },
   { label: 'Facebook', href: 'https://www.facebook.com/hphan.media.vn' },
-  { label: 'Behance', href: 'https://www.behance.net/' },
+  { label: 'Discord', href: 'https://discord.com/users/1043123309983846482' },
 ];
 
 export const integrations = {

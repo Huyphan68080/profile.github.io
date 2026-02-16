@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion';
 import { projects } from '../../data/siteData';
+import { useProjectTechTags } from '../../hooks/useProjectTechTags';
 import ProjectCard from '../cards/ProjectCard';
 import SectionTitle from '../common/SectionTitle';
 
 const ProjectsSection = () => {
+  const enrichedProjects = useProjectTechTags(projects);
+
   return (
     <section id="projects" className="mx-auto max-w-6xl py-24">
       <SectionTitle
@@ -13,7 +16,7 @@ const ProjectsSection = () => {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {projects.map((project, index) => (
+        {enrichedProjects.map((project, index) => (
           <motion.div
             key={project.title}
             initial={{ opacity: 0, x: index % 2 === 0 ? -80 : 80 }}
