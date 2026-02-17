@@ -11,7 +11,6 @@ import LoadingScreen from './components/layout/LoadingScreen';
 import Navbar from './components/layout/Navbar';
 import { useMouseDepth } from './hooks/useMouseDepth';
 import { useVisitorInsights } from './hooks/useVisitorInsights';
-import { useTheme } from './hooks/useTheme';
 
 const SectionLayer = ({ children, y, disabled }) => {
   if (disabled) {
@@ -26,7 +25,6 @@ const SectionLayer = ({ children, y, disabled }) => {
 };
 
 const App = () => {
-  const { theme, toggleTheme } = useTheme();
   const depth = useMouseDepth();
   const visitorInsights = useVisitorInsights();
   const { scrollYProgress } = useScroll();
@@ -116,10 +114,10 @@ const App = () => {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden transition-colors duration-500 selection:bg-neonPurple/40 selection:text-white">
-      <AnimatedBackground depth={depth} theme={theme} isMobile={isMobileView} reduceMotion={shouldSimplifyMotion} />
-      <Navbar theme={theme} onToggleTheme={toggleTheme} viewCount={visitorInsights.viewCount} />
+      <AnimatedBackground depth={depth} theme="dark" isMobile={isMobileView} reduceMotion={shouldSimplifyMotion} />
+      <Navbar viewCount={visitorInsights.viewCount} />
 
-      <AnimatePresence>{isLoading ? <LoadingScreen progress={progress} theme={theme} isMobile={isMobileView} /> : null}</AnimatePresence>
+      <AnimatePresence>{isLoading ? <LoadingScreen progress={progress} theme="dark" isMobile={isMobileView} /> : null}</AnimatePresence>
 
       <main className="relative z-10 px-4 pb-14 pt-24 sm:px-6 sm:pb-16 lg:px-8">
         <HeroSection isMobileView={isMobileView} reduceMotion={shouldSimplifyMotion} />

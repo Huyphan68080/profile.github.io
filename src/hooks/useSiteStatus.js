@@ -9,6 +9,7 @@ const REQUEST_TIMEOUT_MS = 2600;
 const SOCKET_RETRY_DELAY_MS = 1200;
 const DEFAULT_SOCKET_HEARTBEAT_MS = 30000;
 const LANYARD_SOCKET_URL = 'wss://api.lanyard.rest/socket';
+const DISCORD_CDN_BASE = 'https://cdn.discordapp.com';
 
 const DISCORD_USER_ID =
   (typeof import.meta !== 'undefined' ? import.meta.env.VITE_DISCORD_USER_ID : '') || integrations.discordUserId || '';
@@ -16,6 +17,65 @@ const DISCORD_USER_ID =
 const getBrowserStatus = () => {
   if (typeof window === 'undefined') return 'offline';
   return window.navigator.onLine ? 'online' : 'offline';
+};
+
+const getDiscordDefaultAvatarIndex = (userId) => {
+  try {
+    return Number((BigInt(userId) >> 22n) % 6n);
+  } catch {
+    return 0;
+  }
+};
+
+const getDiscordDefaultAvatarUrl = (userId) => {
+  if (typeof userId !== 'string' || !userId.trim()) return '';
+  return `${DISCORD_CDN_BASE}/embed/avatars/${getDiscordDefaultAvatarIndex(userId)}.png`;
+};
+
+const getDiscordAvatarUrl = (discordUser, fallbackUserId = '') => {
+  const userId = typeof discordUser?.id === 'string' && discordUser.id ? discordUser.id : fallbackUserId;
+  const avatarHash = typeof discordUser?.avatar === 'string' ? discordUser.avatar : '';
+
+  if (userId && avatarHash) {
+    const extension = avatarHash.startsWith('a_') ? 'gif' : 'png';
+    return `${DISCORD_CDN_BASE}/avatars/${userId}/${avatarHash}.${extension}?size=512`;
+  }
+
+  return getDiscordDefaultAvatarUrl(userId);
+};
+
+const getDiscordAvatarDecorationData = (discordUser) => {
+  const asset = typeof discordUser?.avatar_decoration_data?.asset === 'string' ? discordUser.avatar_decoration_data.asset : '';
+  if (!asset) {
+    return {
+      avatarDecorationUrl: '',
+      avatarDecorationFallbackUrl: '',
+    };
+  }
+
+  // Discord decoration animations are delivered via APNG in .png on CDN.
+  // Keep a webp fallback for edge cases.
+  return {
+    avatarDecorationUrl: `${DISCORD_CDN_BASE}/avatar-decoration-presets/${asset}.png?size=1024&passthrough=true`,
+    avatarDecorationFallbackUrl: `${DISCORD_CDN_BASE}/avatar-decoration-presets/${asset}.webp?size=1024&passthrough=true`,
+  };
+};
+
+const getInitialDiscordAvatarState = (userId) => {
+  const normalizedUserId = typeof userId === 'string' ? userId.trim() : '';
+  if (!normalizedUserId || FALLBACK_IDS.has(normalizedUserId)) {
+    return {
+      avatarUrl: '',
+      avatarDecorationUrl: '',
+      avatarDecorationFallbackUrl: '',
+    };
+  }
+
+  return {
+    avatarUrl: getDiscordDefaultAvatarUrl(normalizedUserId),
+    avatarDecorationUrl: '',
+    avatarDecorationFallbackUrl: '',
+  };
 };
 
 const getLanyardUserUrl = (userId) => `https://api.lanyard.rest/v1/users/${userId}?_=${Date.now()}`;
@@ -219,6 +279,7 @@ export const useSiteStatus = () => {
     source: 'browser',
     activityEntries: [],
     customLabel: '',
+    ...getInitialDiscordAvatarState(DISCORD_USER_ID),
   });
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -233,12 +294,13 @@ export const useSiteStatus = () => {
 
     if (!canUseDiscord) {
       const syncBrowserStatus = () =>
-        setState({
+        setState((prev) => ({
+          ...prev,
           availability: getBrowserStatus(),
           source: 'browser',
           activityEntries: [],
           customLabel: '',
-        });
+        }));
 
       window.addEventListener('online', syncBrowserStatus);
       window.addEventListener('offline', syncBrowserStatus);
@@ -272,12 +334,18 @@ export const useSiteStatus = () => {
             customLabel: '',
           };
 
+      const avatarUrl = getDiscordAvatarUrl(presenceData?.discord_user, normalizedId);
+      const { avatarDecorationUrl, avatarDecorationFallbackUrl } = getDiscordAvatarDecorationData(presenceData?.discord_user);
+
       if (!isMounted) return;
       setState({
         availability: discordStatus,
         source: 'discord',
         activityEntries,
         customLabel,
+        avatarUrl,
+        avatarDecorationUrl,
+        avatarDecorationFallbackUrl,
       });
     };
 
@@ -417,12 +485,13 @@ export const useSiteStatus = () => {
         });
         if (response.status === 404) {
           if (!isMounted) return;
-          setState({
+          setState((prev) => ({
+            ...prev,
             availability: 'not_linked',
             source: 'discord',
             activityEntries: [],
             customLabel: '',
-          });
+          }));
           stopPolling();
           stopSocket();
           return;
@@ -436,12 +505,13 @@ export const useSiteStatus = () => {
         applyDiscordPresence(payload?.data);
       } catch {
         if (!isMounted) return;
-        setState({
+        setState((prev) => ({
+          ...prev,
           availability: window.navigator.onLine ? 'unavailable' : 'offline',
           source: 'discord',
           activityEntries: [],
           customLabel: '',
-        });
+        }));
       } finally {
         window.clearTimeout(timeoutId);
         isSyncing = false;
@@ -503,6 +573,9 @@ export const useSiteStatus = () => {
         dotClass: browserOnline ? 'bg-emerald-500 dark:bg-emerald-300' : 'bg-zinc-500 dark:bg-zinc-300',
         activityLines: [],
         customLabel: '',
+        avatarUrl: state.avatarUrl,
+        avatarDecorationUrl: state.avatarDecorationUrl,
+        avatarDecorationFallbackUrl: state.avatarDecorationFallbackUrl,
       };
     }
 
@@ -513,6 +586,9 @@ export const useSiteStatus = () => {
         dotClass: 'bg-emerald-500 dark:bg-emerald-300',
         activityLines,
         customLabel: state.customLabel,
+        avatarUrl: state.avatarUrl,
+        avatarDecorationUrl: state.avatarDecorationUrl,
+        avatarDecorationFallbackUrl: state.avatarDecorationFallbackUrl,
       };
     }
 
@@ -523,6 +599,9 @@ export const useSiteStatus = () => {
         dotClass: 'bg-amber-500 dark:bg-amber-300',
         activityLines,
         customLabel: state.customLabel,
+        avatarUrl: state.avatarUrl,
+        avatarDecorationUrl: state.avatarDecorationUrl,
+        avatarDecorationFallbackUrl: state.avatarDecorationFallbackUrl,
       };
     }
 
@@ -533,6 +612,9 @@ export const useSiteStatus = () => {
         dotClass: 'bg-rose-500 dark:bg-rose-300',
         activityLines,
         customLabel: state.customLabel,
+        avatarUrl: state.avatarUrl,
+        avatarDecorationUrl: state.avatarDecorationUrl,
+        avatarDecorationFallbackUrl: state.avatarDecorationFallbackUrl,
       };
     }
 
@@ -543,6 +625,9 @@ export const useSiteStatus = () => {
         dotClass: 'bg-zinc-500 dark:bg-zinc-300',
         activityLines: [],
         customLabel: '',
+        avatarUrl: state.avatarUrl,
+        avatarDecorationUrl: state.avatarDecorationUrl,
+        avatarDecorationFallbackUrl: state.avatarDecorationFallbackUrl,
       };
     }
 
@@ -553,6 +638,9 @@ export const useSiteStatus = () => {
         dotClass: 'bg-orange-500 dark:bg-orange-300',
         activityLines: [],
         customLabel: '',
+        avatarUrl: state.avatarUrl,
+        avatarDecorationUrl: state.avatarDecorationUrl,
+        avatarDecorationFallbackUrl: state.avatarDecorationFallbackUrl,
       };
     }
 
@@ -562,6 +650,18 @@ export const useSiteStatus = () => {
       dotClass: 'bg-orange-500 dark:bg-orange-300',
       activityLines: [],
       customLabel: '',
+      avatarUrl: state.avatarUrl,
+      avatarDecorationUrl: state.avatarDecorationUrl,
+      avatarDecorationFallbackUrl: state.avatarDecorationFallbackUrl,
     };
-  }, [state.availability, state.source, state.activityEntries, state.customLabel, nowMs]);
+  }, [
+    state.availability,
+    state.source,
+    state.activityEntries,
+    state.customLabel,
+    state.avatarUrl,
+    state.avatarDecorationUrl,
+    state.avatarDecorationFallbackUrl,
+    nowMs,
+  ]);
 };

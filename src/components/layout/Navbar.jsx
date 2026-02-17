@@ -1,28 +1,27 @@
 import { motion } from 'framer-motion';
 import { FiEye } from 'react-icons/fi';
 import { navLinks, profile } from '../../data/siteData';
-import ThemeToggle from '../common/ThemeToggle';
 
-const Navbar = ({ theme, onToggleTheme, viewCount }) => {
+const Navbar = ({ viewCount }) => {
   return (
-    <header className="fixed left-1/2 top-3 z-50 w-[min(1120px,94vw)] -translate-x-1/2 sm:top-4">
+    <header className="fixed inset-x-0 top-2 z-50 px-2 sm:top-3 sm:px-4">
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.65 }}
-        className="glass-panel rounded-2xl border border-slate-300/20 px-2.5 py-2.5 shadow-glass sm:px-3 sm:py-3"
+        className="glass-panel mx-auto w-full max-w-6xl rounded-xl border border-slate-300/20 px-2.5 py-2 shadow-glass sm:rounded-2xl sm:px-3 sm:py-2.5"
       >
-        <div className="flex items-center justify-between gap-4">
-          <a href="#hero" className="cyber-title neon-text rounded-full px-3 py-2 text-sm text-white">
+        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2 sm:gap-3">
+          <a href="#hero" className="cyber-title neon-text rounded-full px-2.5 py-1.5 text-xs text-white sm:px-3 sm:py-2 sm:text-sm">
             {profile.brand}
           </a>
 
-          <ul className="hidden items-center gap-1 md:flex">
+          <ul className="hidden items-center justify-center gap-1 lg:flex">
             {navLinks.map((item) => (
               <li key={item.href}>
                 <a
                   href={item.href}
-                  className="rounded-full px-4 py-2 text-sm text-zinc-800 transition hover:bg-rose-100/55 hover:text-rose-950 hover:shadow-neon dark:text-zinc-200 dark:hover:bg-rose-500/20 dark:hover:text-white"
+                  className="rounded-full px-3 py-1.5 text-sm text-zinc-800 transition hover:bg-rose-100/55 hover:text-rose-950 hover:shadow-neon dark:text-zinc-200 dark:hover:bg-rose-500/20 dark:hover:text-white xl:px-4 xl:py-2"
                 >
                   {item.label}
                 </a>
@@ -33,22 +32,21 @@ const Navbar = ({ theme, onToggleTheme, viewCount }) => {
           <div className="flex items-center gap-2">
             <a
               href="#ip-check"
-              className="inline-flex items-center gap-2 rounded-full border border-rose-300/35 bg-rose-100/25 px-3 py-2 text-xs text-rose-900 transition hover:shadow-neon dark:bg-rose-500/14 dark:text-rose-100"
+              className="inline-flex h-8 items-center justify-center gap-1 rounded-full border border-rose-300/35 bg-rose-100/25 px-2 text-[11px] text-rose-900 transition hover:shadow-neon dark:bg-rose-500/14 dark:text-rose-100 sm:h-9 sm:gap-2 sm:px-3 sm:text-xs"
               aria-label="Open visitor stats"
             >
-              <FiEye className="text-sm" />
+              <FiEye className="text-[13px] sm:text-sm" />
               <span>{typeof viewCount === 'number' ? viewCount.toLocaleString() : '--'}</span>
             </a>
-            <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           </div>
         </div>
 
-        <div className="mt-2 flex gap-1 overflow-x-auto pb-1 md:hidden">
+        <div className="mt-2 grid grid-cols-3 gap-1 pb-0.5 sm:mt-2.5 md:grid-cols-6 lg:hidden">
           {navLinks.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="shrink-0 rounded-full border border-slate-300/20 px-3 py-1.5 text-xs text-zinc-800 transition hover:bg-rose-100/60 dark:text-zinc-200 dark:hover:bg-rose-500/20"
+              className="truncate rounded-lg border border-slate-300/20 px-2 py-1.5 text-center text-[11px] text-zinc-800 transition hover:bg-rose-100/60 dark:text-zinc-200 dark:hover:bg-rose-500/20 sm:rounded-full sm:text-xs"
             >
               {item.label}
             </a>
